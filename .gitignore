@@ -50,4 +50,4 @@ l10n/
 
 ### FOLDERS/FILES TO IGNORE
 notebooks/playground.ipynb
-models/**
+*.pth
