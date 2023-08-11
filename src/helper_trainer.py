@@ -195,7 +195,7 @@ if __name__ == '__main__':
     config = Config()
     config.data_dir = 'inputs/mnist'      
     config.models_dir = 'models' 
-    config.model_name = 'ann_baseline'
+    config.model_name = 'snn_baseline_1'
     config.train_batch_size = 16
     config.iters_to_accumlate = 1
     config.sample_run = False

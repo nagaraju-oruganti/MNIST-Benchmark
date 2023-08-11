@@ -72,19 +72,19 @@ class SNNClassifier(nn.Module):
         spike_trains = []
         
         for t in range(self.time_steps):
-            x = torch.relu(self.conv1(x))
-            x = self.dropout(x)
-            x = torch.relu(self.conv2(x))
-            x = self.dropout(x)
-            x = x.view(x.size(0), -1)
-            x = torch.relu(self.fc1(x))
+            xi = torch.relu(self.conv1(x))
+            xi = self.dropout(xi)
+            xi = torch.relu(self.conv2(xi))
+            xi = self.dropout(xi)
+            xi = xi.view(xi.size(0), -1)
+            xi = torch.relu(self.fc1(xi))
             
-            membrane_potential = (1 - 0.1) * membrane_potential + torch.relu(self.fc2(x))
+            membrane_potential = (1 - 0.1) * membrane_potential + 0.1 * torch.relu(self.fc2(xi))
             spikes = membrane_potential > 0.5  # Leaky Integrate-and-Fire threshold
             membrane_potential *= (1 - spikes.float())
             spike_trains.append(spikes)
-            if t < self.time_steps - 1:
-                x = x.view(x.size(0), 1, 28, 28)        # return to original shape
+            # if t < self.time_steps - 1:
+            #     x = x.view(x.size(0), 1, 28, 28)        # return to original shape
                 
         #Convert spike trains to spike rates
         spike_rates = [torch.mean(spikes.float()) for spikes in spike_trains]
@@ -93,7 +93,7 @@ class SNNClassifier(nn.Module):
         combined_spike_rates = torch.stack(spike_rates).sum(dim=0)
 
         # Use the combined spike rates to modify the loss
-        logits = self.fc2(x) + combined_spike_rates #+ spike_trains[-1]
+        logits = self.fc2(xi) + combined_spike_rates #+ spike_trains[-1]
         loss = self.loss_fn(logits, y)
         
         return logits, loss
