@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class ANNClassifierB(nn.Module):
+class ANNLargeClassifier(nn.Module):
     def __init__(self, config, num_classes):
-        super(ANNClassifier, self).__init__()
+        super(ANNLargeClassifier, self).__init__()
         self.config = config
         
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1)

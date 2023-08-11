@@ -16,7 +16,7 @@ from datetime import datetime
 from sklearn.metrics import f1_score, accuracy_score
 
 ## Local imports
-from helper_models import ANNClassifier, SNNClassifier
+from helper_models import ANNClassifier, SNNClassifier, ANNLargeClassifier
 from helper_dataset import get_dataloaders
 
 import warnings
@@ -60,7 +60,7 @@ def trainer(config, model, train_loader, valid_loader, optimizer, scheduler):
     
     def save_checkpoint(model, epoch, best = False):
         if best:
-            save_path = os.path.join(config.dest_path, f'model.pth')
+            save_path = os.path.join(config.dest_path, f'model{config.fold}.pth')
             checkpoint = {
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
@@ -107,7 +107,7 @@ def trainer(config, model, train_loader, valid_loader, optimizer, scheduler):
         print_result()
         
         # Save results
-        with open(os.path.join(config.dest_path, 'results.pkl'), 'wb') as f:
+        with open(os.path.join(config.dest_path, f'results{config.fold}.pkl'), 'wb') as f:
             pickle.dump(results, f)
         
         return ref_score, counter, done 
@@ -162,6 +162,9 @@ def save_config(config, path):
         pickle.dump(config, f)
 
 def train(config):
+    
+    print('\n','-'*50, '\n', f'Training fold {config.fold}')
+    
     device = config.device
     
     config.dest_path = os.path.join(config.models_dir, config.model_name)
@@ -170,7 +173,9 @@ def train(config):
     # define model
     if config.train_arch == 'ANN':
         model = ANNClassifier(config = config, num_classes=10)
-    else:
+    elif config.train_arch == 'ANNLARGE':
+        model = ANNLargeClassifier(config = config, num_classes=10)
+    elif config.train_arch == 'SNN':
         model = SNNClassifier(config = config, num_classes=10)
     model.to(device)
     
@@ -179,14 +184,16 @@ def train(config):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = 'max', factor=0.5, patience=4)
     
     # dataloaders
-    train_loader, valid_loader, _ = get_dataloaders(config, fold = 0)
+    train_loader, valid_loader, _ = get_dataloaders(config, fold = config.fold)
     
     # Trainer
     results = trainer(config, model, train_loader, valid_loader, optimizer, scheduler)
     
     ### SAVE RESULTS
-    with open(os.path.join(config.dest_path, 'results.pkl'), 'wb') as f:
+    with open(os.path.join(config.dest_path, f'results{config.fold}.pkl'), 'wb') as f:
         pickle.dump(results, f)
+        
+    return results
 
 
 if __name__ == '__main__':
