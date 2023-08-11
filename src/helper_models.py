@@ -59,6 +59,7 @@ class SNNClassifier(nn.Module):
         self.conv2 = nn.Conv2d(8, 16, kernel_size=3, padding=1)
         self.fc1 = nn.Linear(16 * input_size * input_size, input_size * input_size)
         self.fc2 = nn.Linear(input_size * input_size, num_classes)
+        self.dropout = nn.Dropout(0.15)
         
     def loss_fn(self, outputs, y):
         criterion = nn.CrossEntropyLoss()
@@ -72,7 +73,9 @@ class SNNClassifier(nn.Module):
         
         for t in range(self.time_steps):
             x = torch.relu(self.conv1(x))
+            x = self.dropout(x)
             x = torch.relu(self.conv2(x))
+            x = self.dropout(x)
             x = x.view(x.size(0), -1)
             x = torch.relu(self.fc1(x))
             
